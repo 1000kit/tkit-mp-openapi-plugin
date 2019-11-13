@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.1000kit.mp</groupId>
+	<groupId>org.tkit.maven</groupId>
 	<artifactId>tkit-mp-openapi-plugin</artifactId>
 	<version>0.2.0-SNAPSHOT</version>
 	<name>tkit-mp-openapi-plugin</name>
 	<packaging>maven-plugin</packaging>
 
-    <description>1000kit microprofile openapi maven plugin</description>
+    <description>tkit microprofile openapi maven plugin</description>
     <url>https://gitlab.com/1000kit/maven/tkit-mp-openapi-plugin</url>
 
     <licenses>
@@ -28,7 +28,7 @@
 
     <organization>
         <name>1000kit</name>
-        <url>http://www.1000kit.org</url>
+        <url>http://www.tkit.org</url>
     </organization>
 
     <developers>

@@ -1,15 +1,15 @@
 # tkit-mp-openapi-plugin
 
-1000kit microprofile openapi plugin
+tkit microprofile openapi plugin
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Maven Central](https://img.shields.io/maven-central/v/org.1000kit.maven/tkit-mp-openapi-plugin?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.1000kit.maven/tkit-mp-openapi-plugin)
+[![Maven Central](https://img.shields.io/maven-central/v/org.tkit.maven/tkit-mp-openapi-plugin?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.tkit.maven/tkit-mp-openapi-plugin)
 
 ## Goal: generate
 
 ```xml
 <plugin>
-    <groupId>org.1000kit.mp</groupId>
+    <groupId>org.tkit.maven</groupId>
     <artifactId>tkit-mp-openapi-plugin</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <executions>
