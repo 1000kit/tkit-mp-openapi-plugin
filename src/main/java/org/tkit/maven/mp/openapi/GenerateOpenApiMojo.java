@@ -130,6 +130,11 @@ public class GenerateOpenApiMojo extends AbstractMojo {
                 getLog().info("OpenApi:\n" + output);
             }
             getLog().info("OpenAPI file in format " + format + " created: " + outputFile);
+
+            // create the target directory
+            Files.createDirectories(outputFile.toPath().getParent());
+
+            // write the openapi to the output file
             Files.write(outputFile.toPath(), output.getBytes(StandardCharsets.UTF_8));
 
         } catch (Exception ex) {
