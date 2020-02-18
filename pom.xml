@@ -54,7 +54,7 @@
         <dependency>
             <groupId>io.smallrye</groupId>
             <artifactId>smallrye-open-api</artifactId>
-            <version>1.1.19</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.platform</groupId>
