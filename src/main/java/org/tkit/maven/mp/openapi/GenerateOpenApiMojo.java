@@ -28,19 +28,29 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
-import org.reflections.Reflections;
+import org.jboss.jandex.MergeIndexer;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Generate the openAPI file.
@@ -48,6 +58,7 @@ import java.util.*;
 @Mojo(name = "generate",
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresProject = true,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
         aggregator = false,
         threadSafe = true)
 public class GenerateOpenApiMojo extends AbstractMojo {
@@ -106,18 +117,21 @@ public class GenerateOpenApiMojo extends AbstractMojo {
     @Parameter(defaultValue = "${mojoExecution}", readonly = true)
     private MojoExecution mojoExecution;
 
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
+
     /**
      * {@inheritDoc }
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
-            Indexer indexer = createIndexer();
+            Index indexer = createIndexer();
             if (indexer == null) {
                 return;
             }
 
-            OpenApiAnnotationScanner scanner = new OpenApiAnnotationScanner(createConfig(), indexer.complete());
+            OpenApiAnnotationScanner scanner = new OpenApiAnnotationScanner(createConfig(), indexer);
             OpenAPI result = scanner.scan();
 
             OpenApiSerializer.Format f = OpenApiSerializer.Format.YAML;
@@ -182,20 +196,30 @@ public class GenerateOpenApiMojo extends AbstractMojo {
      * @return the indexer
      * @throws MojoExecutionException if the method fails.
      */
-    private Indexer createIndexer() throws MojoExecutionException {
+    private Index createIndexer() throws MojoExecutionException {
 
         if (!classesDir.exists()) {
             getLog().info("Directory does not exist! Directory: " + classesDir);
             return null;
         }
 
+        final MergeIndexer indexer = new MergeIndexer();
+        // load from dependencies
+        loadIndexFromDependencies(indexer);
+        // load from project
+        loadIndexFromProject(indexer);
+        // create index
+        return indexer.complete();
+    }
+
+    private void loadIndexFromProject(final MergeIndexer indexer) throws MojoExecutionException {
         final DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(classesDir);
         scanner.setIncludes("**/*.class");
         scanner.scan();
         final String[] files = scanner.getIncludedFiles();
 
-        final Indexer indexer = new Indexer();
+        final Indexer tmpIndex = new Indexer();
         for (final String file : files) {
             if (file.endsWith(".class")) {
                 File tmp = new File(classesDir, file);
@@ -203,16 +227,40 @@ public class GenerateOpenApiMojo extends AbstractMojo {
                     getLog().info("File: " + tmp);
                 }
                 try (FileInputStream fis = new FileInputStream(tmp)) {
-                    final ClassInfo info = indexer.index(fis);
+                    final ClassInfo info = tmpIndex.index(fis);
                     if (verbose && info != null) {
                         getLog().info("Indexed " + info.name() + " (" + info.annotations().size() + " annotations)");
                     }
                 } catch (final Exception e) {
                     throw new MojoExecutionException(e.getMessage(), e);
                 }
-
             }
         }
-        return indexer;
+        indexer.addIndex(tmpIndex.complete());
+    }
+
+    private void loadIndexFromDependencies(final MergeIndexer indexer) throws MojoExecutionException {
+        try {
+            List<String> elements = project.getRuntimeClasspathElements();
+            if (elements != null && !elements.isEmpty()) {
+                List<URL> tmp = new ArrayList<>();
+                for (String element : elements) {
+                    tmp.add(new File(element).toURI().toURL());
+                }
+                URL[] runtimeUrls = tmp.toArray(new URL[0]);
+                URLClassLoader newLoader = new URLClassLoader(runtimeUrls, Thread.currentThread().getContextClassLoader());
+
+                Enumeration<URL> items = newLoader.getResources(MergeIndexer.INDEX);
+                while (items.hasMoreElements()) {
+                    URL url = items.nextElement();
+                    if (verbose) {
+                        getLog().info("Dependency: " + url);
+                    }
+                    indexer.loadFromUrl(url);
+                }
+            }
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error loading index from libraries.", e);
+        }
     }
 }
