@@ -19,6 +19,7 @@ import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfig;
 import io.smallrye.openapi.api.OpenApiConfig;
 import io.smallrye.openapi.api.OpenApiConfigImpl;
+import io.smallrye.openapi.runtime.io.Format;
 import io.smallrye.openapi.runtime.io.OpenApiSerializer;
 import io.smallrye.openapi.runtime.scanner.OpenApiAnnotationScanner;
 import org.apache.maven.plugin.AbstractMojo;
@@ -134,9 +135,9 @@ public class GenerateOpenApiMojo extends AbstractMojo {
             OpenApiAnnotationScanner scanner = new OpenApiAnnotationScanner(createConfig(), indexer);
             OpenAPI result = scanner.scan();
 
-            OpenApiSerializer.Format f = OpenApiSerializer.Format.YAML;
-            if (OpenApiSerializer.Format.JSON.name().equals(format)) {
-                f = OpenApiSerializer.Format.JSON;
+            Format f =Format.YAML;
+            if (Format.JSON.name().equals(format)) {
+                f = Format.JSON;
             }
 
             String output = OpenApiSerializer.serialize(result, f);
