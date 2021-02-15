@@ -19,9 +19,11 @@ import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfig;
 import io.smallrye.openapi.api.OpenApiConfig;
 import io.smallrye.openapi.api.OpenApiConfigImpl;
+import io.smallrye.openapi.api.OpenApiDocument;
+import io.smallrye.openapi.api.util.ClassLoaderUtil;
+import io.smallrye.openapi.runtime.OpenApiProcessor;
 import io.smallrye.openapi.runtime.io.Format;
 import io.smallrye.openapi.runtime.io.OpenApiSerializer;
-import io.smallrye.openapi.runtime.scanner.OpenApiAnnotationScanner;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,6 +36,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.ClassInfo;
@@ -132,15 +135,24 @@ public class GenerateOpenApiMojo extends AbstractMojo {
                 return;
             }
 
-            OpenApiAnnotationScanner scanner = new OpenApiAnnotationScanner(createConfig(), indexer);
-            OpenAPI result = scanner.scan();
+            OpenApiConfig openApiConfig = createConfig();
+            OpenAPI annotationModel = OpenApiProcessor.modelFromAnnotations(openApiConfig, indexer);
 
-            Format f =Format.YAML;
+            OpenApiDocument document = OpenApiDocument.INSTANCE;
+            document.reset();
+            document.config(openApiConfig);
+            document.modelFromAnnotations(annotationModel);
+            document.filter(OpenApiProcessor.getFilter(openApiConfig, ClassLoaderUtil.getDefaultClassLoader()));
+            document.initialize();
+
+            releaseConfig();
+
+            Format f = Format.YAML;
             if (Format.JSON.name().equals(format)) {
                 f = Format.JSON;
             }
 
-            String output = OpenApiSerializer.serialize(result, f);
+            String output = OpenApiSerializer.serialize(document.get(), f);
             if (verbose) {
                 getLog().info("OpenApi:\n" + output);
             }
@@ -189,6 +201,15 @@ public class GenerateOpenApiMojo extends AbstractMojo {
         }
 
         return new OpenApiConfigImpl(config);
+    }
+
+    /**
+     * Releases the micro-profile configuration for the openAPI
+     * This is needed in order to have separate configuration properties for each plugin execution
+     */
+    private void releaseConfig() {
+        Config config = ConfigProvider.getConfig();
+        ConfigProviderResolver.instance().releaseConfig(config);
     }
 
     /**
