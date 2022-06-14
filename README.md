@@ -28,6 +28,7 @@ tkit microprofile openapi plugin
                 </properties>
                 <propertiesOrdinal>201</propertiesOrdinal>
                 <format>YAML</format>
+                <rootPath>root-rs</rootPath>
                 <outputFile>${project.build.directory}/openapi.yaml</outputFile>
             </configuration>
         </execution>
@@ -47,6 +48,7 @@ tkit microprofile openapi plugin
 | propertiesOrdinal | 201 | | The micro-profile configuration properties ordinal number |
 | format | YAML | YAML, JSON | The output format |
 | outputFile | ${project.build.directory}/openapi.yaml | | The output openAPI file |
+| rootPath | | | When quarkus.http.root-path is set, it is useful to have rootPath also in output file  |
 
 ## Release
 

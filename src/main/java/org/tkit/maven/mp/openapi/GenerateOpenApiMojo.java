@@ -20,10 +20,12 @@ import io.smallrye.config.SmallRyeConfig;
 import io.smallrye.openapi.api.OpenApiConfig;
 import io.smallrye.openapi.api.OpenApiConfigImpl;
 import io.smallrye.openapi.api.OpenApiDocument;
+import io.smallrye.openapi.api.models.PathsImpl;
 import io.smallrye.openapi.api.util.ClassLoaderUtil;
 import io.smallrye.openapi.runtime.OpenApiProcessor;
 import io.smallrye.openapi.runtime.io.Format;
 import io.smallrye.openapi.runtime.io.OpenApiSerializer;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,6 +41,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
+import org.eclipse.microprofile.openapi.models.PathItem;
+import org.eclipse.microprofile.openapi.models.Paths;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
@@ -51,10 +55,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Generate the openAPI file.
@@ -124,6 +125,9 @@ public class GenerateOpenApiMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
+    @Parameter(name = "rootPath")
+    private String rootPath;
+
     /**
      * {@inheritDoc }
      */
@@ -151,6 +155,7 @@ public class GenerateOpenApiMojo extends AbstractMojo {
             if (Format.JSON.name().equals(format)) {
                 f = Format.JSON;
             }
+            appendRootPathIfExists(document);
 
             String output = OpenApiSerializer.serialize(document.get(), f);
             if (verbose) {
@@ -166,6 +171,19 @@ public class GenerateOpenApiMojo extends AbstractMojo {
 
         } catch (Exception ex) {
             throw new MojoExecutionException("Error execute the plugin ", ex);
+        }
+    }
+
+    private void appendRootPathIfExists(OpenApiDocument document) {
+        if (StringUtils.isNotBlank(rootPath)) {
+            Paths paths = document.get().getPaths();
+            Iterator<String> iterator = paths.keySet().iterator();
+            Paths updatedPaths = new PathsImpl();
+            while (iterator.hasNext()) {
+                String key = iterator.next();
+                updatedPaths.addPathItem("/" + rootPath + key, paths.getPathItem(key));
+            }
+            document.get().setPaths(updatedPaths);
         }
     }
 
