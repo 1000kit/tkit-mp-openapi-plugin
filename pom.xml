@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.tkit.maven</groupId>
     <artifactId>tkit-mp-openapi-plugin</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>999-SNAPSHOT</version>
     <name>tkit-mp-openapi-plugin</name>
     <packaging>maven-plugin</packaging>
 
     <description>tkit microprofile openapi maven plugin</description>
-    <url>https://gitlab.com/1000kit/maven/tkit-mp-openapi-plugin</url>
+    <url>https://github.com/1000kit/tkit-mp-openapi-plugin</url>
 
     <licenses>
         <license>
@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://gitlab.com/1000kit/maven/tkit-mp-openapi-plugin.git</connection>
-        <developerConnection>scm:git:git@gitlab.com:1000kit/maven/tkit-mp-openapi-plugin.git</developerConnection>
-        <url>https://gitlab.com/1000kit/maven/tkit-mp-openapi-plugin</url>
+        <connection>scm:git:https://github.com/1000kit/tkit-mp-openapi-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:1000kit/tkit-mp-openapi-plugin.git</developerConnection>
+        <url>https://github.com/1000kit/tkit-mp-openapi-plugin</url>
     </scm>
 
     <organization>
