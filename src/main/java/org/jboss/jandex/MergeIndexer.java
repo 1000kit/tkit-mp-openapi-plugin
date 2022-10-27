@@ -22,7 +22,7 @@ public class MergeIndexer {
         classes.putAll(index.classes);
     }
     public Index complete() {
-        return new Index(annotations, subclasses, implementors, classes);
+        return Index.create(annotations, subclasses, implementors, classes);
     }
 
     public void loadFromUrl(URL url) throws Exception {

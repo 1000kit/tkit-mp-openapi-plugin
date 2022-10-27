@@ -17,6 +17,7 @@ package org.tkit.maven.mp.openapi;
 
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfig;
+import io.smallrye.config.SmallRyeConfigBuilder;
 import io.smallrye.openapi.api.OpenApiConfig;
 import io.smallrye.openapi.api.OpenApiConfigImpl;
 import io.smallrye.openapi.api.OpenApiDocument;
@@ -177,7 +178,7 @@ public class GenerateOpenApiMojo extends AbstractMojo {
     private void appendRootPathIfExists(OpenApiDocument document) {
         if (StringUtils.isNotBlank(rootPath)) {
             Paths paths = document.get().getPaths();
-            Iterator<String> iterator = paths.keySet().iterator();
+            Iterator<String> iterator = paths.getPathItems().keySet().iterator();
             Paths updatedPaths = new PathsImpl();
             while (iterator.hasNext()) {
                 String key = iterator.next();
@@ -195,7 +196,9 @@ public class GenerateOpenApiMojo extends AbstractMojo {
      */
     private OpenApiConfig createConfig() throws MojoExecutionException {
         Config config = ConfigProvider.getConfig();
-        SmallRyeConfig sc = (SmallRyeConfig) config;
+        SmallRyeConfigBuilder cb = new SmallRyeConfigBuilder();
+
+        config.getConfigSources().iterator().forEachRemaining(cb::withSources);
 
         // config file
         if (configFile != null && configFile.exists() && configFile.isFile()) {
@@ -206,7 +209,7 @@ public class GenerateOpenApiMojo extends AbstractMojo {
                 throw new MojoExecutionException("Error loading the properties " + configFile, e);
             }
             prop.setProperty(ConfigSource.CONFIG_ORDINAL, configFileOrdinal);
-            sc.addConfigSource(new PropertiesConfigSource(prop, configFile.getName()));
+            cb.withSources(new PropertiesConfigSource(prop, configFile.getName()));
             getLog().info("Add the configuration source " + configFile);
         }
 
@@ -214,11 +217,11 @@ public class GenerateOpenApiMojo extends AbstractMojo {
         if (properties != null && !properties.isEmpty()) {
             properties.setProperty(ConfigSource.CONFIG_ORDINAL, propertiesOrdinal);
             String id = mojoExecution.getMojoDescriptor().getId() + " (" + mojoExecution.getExecutionId() + ")";
-            sc.addConfigSource(new PropertiesConfigSource(properties, id));
+            cb.withSources(new PropertiesConfigSource(properties, id));
             getLog().info("Add the configuration source from maven plugin: " + id);
         }
 
-        return new OpenApiConfigImpl(config);
+        return new OpenApiConfigImpl(cb.build());
     }
 
     /**
