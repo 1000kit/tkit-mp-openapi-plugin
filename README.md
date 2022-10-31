@@ -1,10 +1,18 @@
 # tkit-mp-openapi-plugin
 
-tkit microprofile openapi plugin
-
+tkit microprofile openapi plugin 
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/org.tkit.maven/tkit-mp-openapi-plugin?logo=java&style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/org.tkit.maven/tkit-mp-openapi-plugin)
 [![GitHub Actions Status](<https://img.shields.io/github/workflow/status/1000kit/tkit-mp-openapi-plugin/build?logo=GitHub&style=for-the-badge>)](https://github.com/1000kit/tkit-mp-openapi-plugin/actions/workflows/build.yml)
+
+## What it does
+
+This plugin allows you to generate Openapi schemas from code (JaxRS/Quarkus). Quarkus does support Openapi schema generation out of the box, however with some limitations:  
+* Schema generation happens at runtime 
+* All API endpoints are merged into single schema 
+* No possibility to exclude classes from the scan
+
+This plugin fixes these issues by using the same underlying mechanism for schema generation(Smallrye Openapi) but allowing more granular control.
 
 ## Goal: generate
 
@@ -12,7 +20,7 @@ tkit microprofile openapi plugin
 <plugin>
     <groupId>org.tkit.maven</groupId>
     <artifactId>tkit-mp-openapi-plugin</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <executions>
         <execution>
             <id>generate</id>
@@ -22,14 +30,17 @@ tkit microprofile openapi plugin
             <configuration>
                 <verbose>true</verbose>
                 <classesDir>${project.build.outputDirectory}</classesDir>
+                <!-- Extra MP config file that should be used as config source during the generator run -->
                 <configFile>src/main/my.properties</configFile>
                 <configFileOrdinal>200</configFileOrdinal>
                 <properties>
+                    <!-- Use this to control which packages should be included in scan -->
                     <mp.openapi.scan.exclude.packages>org.tkit.parameters.rs.external.v2</mp.openapi.scan.exclude.packages>
                 </properties>
                 <propertiesOrdinal>201</propertiesOrdinal>
                 <format>YAML</format>
                 <rootPath>root-rs</rootPath>
+                <!-- where do you want to store the output -->
                 <outputFile>${project.build.directory}/openapi.yaml</outputFile>
             </configuration>
         </execution>
@@ -37,7 +48,9 @@ tkit microprofile openapi plugin
 </plugin>
 ```
 
-#### Parameters
+If you want to generate multuiple schema files (for example internal.yaml and public-v1.yaml) then simply add 2 (or multiple) plugin executions with appropriate config.
+
+### Parameters
 
 |  Name | Default  | Values | Description  |
 |---|---|---|---|
