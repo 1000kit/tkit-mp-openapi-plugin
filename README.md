@@ -1,3 +1,5 @@
+This plugin is **deprecated** please use [smallrye-open-api-maven-plugin](https://github.com/smallrye/smallrye-open-api/tree/main/tools/maven-plugin)
+
 # tkit-mp-openapi-plugin
 
 tkit microprofile openapi plugin 
